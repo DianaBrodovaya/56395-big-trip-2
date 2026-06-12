@@ -1,7 +1,7 @@
 # Проект «Большое путешествие»
 
 * Студент: [Диана Бродовая](https://up.htmlacademy.ru/ecmascript-individual/2/user/56395).
-* Наставник: `Неизвестно`.
+* Наставник: [Евгения Подопригора](https://htmlacademy.ru/profile/id2387199).
 
 ---
 
