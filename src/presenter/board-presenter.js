@@ -1,3 +1,4 @@
+//import { render, replace, RenderPosition } from '../framework/render.js';
 import { render } from '../render.js';
 import { getDefaultEvent } from '../const.js';
 import EventEditView from '../view/event-edit-view.js';
