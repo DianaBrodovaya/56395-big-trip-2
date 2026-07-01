@@ -2,30 +2,26 @@ import { destinations } from '../mock/destinations-mock.js';
 import { offers } from '../mock/offers-mock.js';
 import { events } from '../mock/events-mock.js';
 
-
 export default class EventModel {
+  #events = [];
+  #destinations = [];
+  #offers = [];
+
   constructor() {
-    this.events = [];
-    this.destinations = [];
-    this.offers = [];
+    this.#events = events;
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
-
-  init() {
-    this.events = events;
-    this.destinations = destinations;
-    this.offers = offers;
+  get events() {
+    return [...this.#events];
   }
 
-  getEvents() {
-    return this.events;
+  get destinations() {
+    return [...this.#destinations];
   }
 
-  getDestinations() {
-    return this.destinations;
-  }
-
-  getOffers() {
-    return this.offers;
+  get offers() {
+    return [...this.#offers];
   }
 }

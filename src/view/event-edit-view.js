@@ -1,16 +1,18 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { EVENT_TYPES } from '../const.js';
-import { humanizeTime } from '../utils.js';
+import { humanizeDate } from '../utils.js';
+
 const upFirstLetter = (word) => `${word[0].toUpperCase()}${word.slice(1)}`;
 const formatOfferTitle = (title) => title.split(' ').join('_');
 
 const createEventEditTemplate = (event, destinations, offers) => {
-  const eventDestination = destinations.find((destination) => destination.id === event.destination);
-  const typeOffers = offers.find((offer) => offer.type === event.type).offers;
-  const eventOffers = typeOffers.filter((typeOffer) => event.offers.includes(typeOffer.id));
   const { dateFrom, dateTo, basePrice, type } = event;
-  const { name, description, pictures } = eventDestination || {};
   const eventId = event.id || 0;
+  const eventDestination = destinations.find((destination) => destination.id === event.destination);
+  const { name, description, pictures } = eventDestination || {};
+  const typeOffersObj = offers.find((offer) => offer.type === type);
+  const typeOffers = typeOffersObj ? typeOffersObj.offers : [];
+  const eventOffers = typeOffers.filter((typeOffer) => event.offers.includes(typeOffer.id));
 
   return (
     `<li class="trip-events__item">
@@ -29,7 +31,12 @@ const createEventEditTemplate = (event, destinations, offers) => {
 
                 ${EVENT_TYPES.map((eventType) => `
                   <div class="event__type-item">
-                    <input id="event-type-${eventType}-${eventId}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${eventType}">
+                    <input id="event-type-${eventType}-${eventId}"
+                           class="event__type-input  visually-hidden"
+                           type="radio"
+                           name="event-type"
+                           value="${eventType}"
+                           ${eventType === type ? 'checked' : ''}>
                     <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-${eventId}">${upFirstLetter(eventType)}</label>
                   </div>
                 `).join('')}
@@ -41,8 +48,16 @@ const createEventEditTemplate = (event, destinations, offers) => {
             <label class="event__label  event__type-output" for="event-destination-${eventId}">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-${eventId}" type="text"
-              name="event-destination" value="${name || ''}" list="destination-list-${eventId}">
+            <input class="event__input  event__input--destination"
+                  id="event-destination-${eventId}"
+                  type="text"
+                  name="event-destination"
+                  value="${name || ''}"
+                  list="destination-list-${eventId}"
+                  autocomplete="off"
+                  onfocus="this.dataset.oldValue = this.value; this.value = ''; this.blur(); this.focus();"
+                  onblur="if (!this.value) { this.value = this.dataset.oldValue; }">
+
             <datalist id="destination-list-${eventId}">
               ${destinations.map((destination) => `
                 <option value="${destination.name}"></option>
@@ -53,11 +68,11 @@ const createEventEditTemplate = (event, destinations, offers) => {
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-${eventId}">From</label>
             <input class="event__input  event__input--time" id="event-start-time-${eventId}" type="text"
-              name="event-start-time" value="${humanizeTime(dateFrom)}">
+              name="event-start-time" value="${humanizeDate(dateFrom)}">
             &mdash;
             <label class="visually-hidden" for="event-end-time-${eventId}">To</label>
             <input class="event__input  event__input--time" id="event-end-time-${eventId}" type="text"
-              name="event-end-time" value="${humanizeTime(dateTo)}">
+              name="event-end-time" value="${humanizeDate(dateTo)}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -107,10 +122,10 @@ const createEventEditTemplate = (event, destinations, offers) => {
       `<section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${description}</p>
-          ${pictures.length ? (
+          ${pictures && pictures.length ? (
         `<div class="event__photos-container">
               <div class="event__photos-tape">
-                ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`)}
+                ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
                 </div>
               </div>`
       ) : ''}
@@ -123,14 +138,18 @@ const createEventEditTemplate = (event, destinations, offers) => {
 };
 
 export default class EventEditView extends AbstractView {
+  #event = null;
+  #destinations = null;
+  #offers = null;
+
   constructor(event, destinations, offers) {
     super();
-    this.event = event;
-    this.destinations = destinations;
-    this.offers = offers;
+    this.#event = event;
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
   get template() {
-    return createEventEditTemplate(this.event, this.destinations, this.offers);
+    return createEventEditTemplate(this.#event, this.#destinations, this.#offers);
   }
 }

@@ -1,4 +1,4 @@
-import {render} from './framework/render.js';
+import { render } from './framework/render.js';
 import EventModel from './model/event-model.js';
 import BoardPresenter from './presenter/board-presenter.js';
 import FilterView from './view/filter-view.js';
@@ -10,10 +10,10 @@ const siteMainElement = document.querySelector('.trip-events');
 render(new FilterView(), filtersContainer);
 
 const eventModel = new EventModel();
-eventModel.init();
 
 const boardPresenter = new BoardPresenter({
   boardContainer: siteMainElement,
-  eventModel: eventModel
+  eventModel
 });
+
 boardPresenter.init();

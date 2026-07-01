@@ -3,7 +3,8 @@ import { humanizeDay, humanizeTime, getDuration } from '../utils.js';
 
 const createEventItemTemplate = (event, destinations, offers) => {
   const {basePrice, isFavorite, dateFrom, dateTo, type} = event;
-  const typeOffers = offers.find((offer) => offer.type === event.type).offers;
+  const typeOffersObj = offers.find((offer) => offer.type === type);
+  const typeOffers = typeOffersObj ? typeOffersObj.offers : [];
   const eventOffers = typeOffers.filter((typeOffer) => event.offers.includes(typeOffer.id));
   const eventDestination = destinations.find((destination) => destination.id === event.destination);
 
@@ -12,9 +13,9 @@ const createEventItemTemplate = (event, destinations, offers) => {
       <div class="event">
         <time class="event__date" datetime="${dateFrom}">${humanizeDay(dateFrom)}</time>
         <div class="event__type">
-          <img class="event__type-icon" width="42" height="42" src="img/icons/taxi.png" alt="Event type icon">
+          <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${type} ${eventDestination.name}</h3>
+        <h3 class="event__title">${type} ${eventDestination ? eventDestination.name : ''}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${dateFrom}">${humanizeTime(dateFrom)}</time>
@@ -51,14 +52,18 @@ const createEventItemTemplate = (event, destinations, offers) => {
 };
 
 export default class EventItemView extends AbstractView {
+  #event = null;
+  #destinations = null;
+  #offers = null;
+
   constructor(event, destinations, offers) {
     super();
-    this.event = event;
-    this.destinations = destinations;
-    this.offers = offers;
+    this.#event = event;
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
   get template() {
-    return createEventItemTemplate(this.event, this.destinations, this.offers);
+    return createEventItemTemplate(this.#event, this.#destinations, this.#offers);
   }
 }
