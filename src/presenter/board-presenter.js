@@ -1,4 +1,4 @@
-import { render } from '../framework/render.js';
+import { render, replace } from '../framework/render.js';
 import EventEditView from '../view/event-edit-view.js';
 import EventItemView from '../view/event-item-view.js';
 import EventListView from '../view/event-list-view.js';
@@ -8,6 +8,8 @@ export default class BoardPresenter {
   #boardContainer = null;
   #eventModel = null;
   #eventListComponent = new EventListView();
+
+  #eventPresenterMap = new Map();
 
   constructor({ boardContainer, eventModel }) {
     this.#boardContainer = boardContainer;
@@ -22,12 +24,71 @@ export default class BoardPresenter {
     render(new SortView(), this.#boardContainer);
     render(this.#eventListComponent, this.#boardContainer);
 
-    if (events.length > 0) {
-      render(new EventEditView(events[0], destinations, offers), this.#eventListComponent.element);
+    for (const event of events) {
+      this.#renderEvent(event, destinations, offers);
+    }
+  }
+
+  #resetAllEventsView = () => {
+    this.#eventPresenterMap.forEach((replaceFormToCard) => replaceFormToCard());
+  };
+
+  #renderEvent(event, destinations, offers) {
+    let eventComponent = null;
+    let eventEditComponent = null;
+
+    let isEditMode = false;
+
+    const replaceCardToForm = () => {
+      this.#resetAllEventsView();
+
+      replace(eventEditComponent, eventComponent);
+      document.addEventListener('keydown', escKeyDownHandler);
+
+      isEditMode = true;
+    };
+
+    const replaceFormToCard = () => {
+      if (isEditMode) {
+        replace(eventComponent, eventEditComponent);
+        document.removeEventListener('keydown', escKeyDownHandler);
+        isEditMode = false;
+      }
+    };
+
+    function escKeyDownHandler(evt) {
+      if (evt.key === 'Escape' || evt.key === 'Esc') {
+        evt.preventDefault();
+        replaceFormToCard();
+      }
     }
 
-    for (let i = 1; i < events.length; i++) {
-      render(new EventItemView(events[i], destinations, offers), this.#eventListComponent.element);
-    }
+    eventComponent = new EventItemView(
+      event,
+      destinations,
+      offers,
+      () => {
+        replaceCardToForm();
+      }
+    );
+
+    eventEditComponent = new EventEditView(
+      event,
+      destinations,
+      offers,
+      {
+        onFormSubmit: () => {
+          replaceFormToCard();
+        },
+        onRollupClick: () => {
+          replaceFormToCard();
+        }
+      }
+    );
+
+    const eventKey = event.id || event;
+    this.#eventPresenterMap.set(eventKey, replaceFormToCard);
+
+    render(eventComponent, this.#eventListComponent.element);
   }
 }

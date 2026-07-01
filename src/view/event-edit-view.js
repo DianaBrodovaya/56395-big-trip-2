@@ -141,15 +141,35 @@ export default class EventEditView extends AbstractView {
   #event = null;
   #destinations = null;
   #offers = null;
+  #handleFormSubmit = null;
+  #handleRollupClick = null;
 
-  constructor(event, destinations, offers) {
+  constructor(event, destinations, offers, { onFormSubmit, onRollupClick }) {
     super();
     this.#event = event;
     this.#destinations = destinations;
     this.#offers = offers;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleRollupClick = onRollupClick;
+
+    this.element.querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupClickHandler);
   }
 
   get template() {
     return createEventEditTemplate(this.#event, this.#destinations, this.#offers);
   }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+  };
+
+  #rollupClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleRollupClick();
+  };
 }
