@@ -106,4 +106,9 @@ export default class EventPresenter {
   #handleFormRollupClick = () => {
     this.#replaceFormToCard();
   };
+
+  destroy() {
+    remove(this.#eventComponent);
+    remove(this.#eventEditComponent);
+  }
 }
