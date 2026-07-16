@@ -3,7 +3,6 @@ export const EVENT_TYPES = [
   'bus',
   'train',
   'ship',
-  'transport',
   'drive',
   'flight',
   'check-in',
