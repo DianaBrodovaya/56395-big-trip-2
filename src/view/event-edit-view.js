@@ -2,6 +2,9 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { EVENT_TYPES } from '../const.js';
 import { humanizeDate } from '../utils/date.js';
 
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+
 const upFirstLetter = (word) => `${word[0].toUpperCase()}${word.slice(1)}`;
 const formatOfferTitle = (title) => title.split(' ').join('_');
 
@@ -137,6 +140,9 @@ export default class EventEditView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleRollupClick = null;
 
+  #datepickerFrom = null;
+  #datepickerTo = null;
+
   constructor(event, destinations, offers, { onFormSubmit, onRollupClick }) {
     super();
     this.#destinations = destinations;
@@ -145,12 +151,25 @@ export default class EventEditView extends AbstractStatefulView {
     this.#handleRollupClick = onRollupClick;
 
     this._setState(EventEditView.parseEventToState(event));
-
     this._restoreHandlers();
   }
 
   get template() {
     return createEventEditTemplate(this._state, this.#destinations, this.#offers);
+  }
+
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
   }
 
   _restoreHandlers() {
@@ -170,6 +189,8 @@ export default class EventEditView extends AbstractStatefulView {
     if (offersContainer) {
       offersContainer.addEventListener('change', this.#offersChangeHandler);
     }
+
+    this.#setDatepicker();
   }
 
   reset(event) {
@@ -192,7 +213,6 @@ export default class EventEditView extends AbstractStatefulView {
     if (evt.target.tagName !== 'INPUT') {
       return;
     }
-
     evt.preventDefault();
     this.updateElement({
       type: evt.target.value,
@@ -202,7 +222,6 @@ export default class EventEditView extends AbstractStatefulView {
 
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
-
     const selectedDestination = this.#destinations.find((item) => item.name === evt.target.value);
 
     if (!selectedDestination) {
@@ -223,8 +242,8 @@ export default class EventEditView extends AbstractStatefulView {
 
     const clickedOfferId = evt.target.dataset.offerId;
     const isChecked = evt.target.checked;
-
     let updatedOffers = [...this._state.offers];
+
     if (isChecked) {
       updatedOffers.push(clickedOfferId);
     } else {
@@ -236,12 +255,55 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
+  #setDatepicker() {
+    const eventId = this._state.id || 0;
+
+    const commonConfig = {
+      enableTime: true,
+      'time_24hr': true,
+      dateFormat: 'd/m/y H:i',
+    };
+
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector(`#event-start-time-${eventId}`),
+      {
+        ...commonConfig,
+        defaultDate: this._state.dateFrom,
+        maxDate: this._state.dateTo,
+        onChange: this.#dateFromChangeHandler,
+      },
+    );
+
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector(`#event-end-time-${eventId}`),
+      {
+        ...commonConfig,
+        defaultDate: this._state.dateTo,
+        minDate: this._state.dateFrom,
+        onChange: this.#dateToChangeHandler,
+      },
+    );
+  }
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+    this.#datepickerTo.set('minDate', this._state.dateFrom);
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+    this.#datepickerFrom.set('maxDate', this._state.dateTo);
+  };
+
   static parseEventToState(event) {
     return { ...event };
   }
 
   static parseStateToEvent(state) {
-    const event = { ...state };
-    return event;
+    return { ...state };
   }
 }
