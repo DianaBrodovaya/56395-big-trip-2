@@ -1,13 +1,15 @@
+import Observable from '../framework/observable.js';
 import { destinations } from '../mock/destinations-mock.js';
 import { offers } from '../mock/offers-mock.js';
 import { events } from '../mock/events-mock.js';
 
-export default class EventModel {
+export default class EventModel extends Observable {
   #events = [];
   #destinations = [];
   #offers = [];
 
   constructor() {
+    super();
     this.#events = events;
     this.#destinations = destinations;
     this.#offers = offers;
@@ -15,10 +17,6 @@ export default class EventModel {
 
   get events() {
     return [...this.#events];
-  }
-
-  set events(updatedEvents) {
-    this.#events = [...updatedEvents];
   }
 
   get destinations() {
@@ -41,5 +39,7 @@ export default class EventModel {
       updatedEvent,
       ...this.#events.slice(index + 1),
     ];
+
+    this._notify('UPDATE_POINT', updatedEvent);
   }
 }
