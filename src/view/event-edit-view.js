@@ -5,12 +5,24 @@ import { humanizeDate } from '../utils/date.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
+const createDefaultPoint = () => ({
+  basePrice: 0,
+  dateFrom: null,
+  dateTo: null,
+  destination: '',
+  isFavorite: false,
+  offers: [],
+  type: 'flight'
+});
+
 const upFirstLetter = (word) => `${word[0].toUpperCase()}${word.slice(1)}`;
 const formatOfferTitle = (title) => title.split(' ').join('_');
 
 const createEventEditTemplate = (state, destinations, offers) => {
   const { dateFrom, dateTo, basePrice, type, destination, offers: selectedOffersIds, id } = state;
   const eventId = id || 0;
+
+  const isEditMode = id !== undefined;
 
   const eventDestination = destinations.find((item) => item.id === destination);
   const { name, description, pictures } = eventDestination || {};
@@ -81,10 +93,14 @@ const createEventEditTemplate = (state, destinations, offers) => {
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
-          <button class="event__rollup-btn" type="button">
-            <span class="visually-hidden">Open event</span>
+          <button class="event__reset-btn" type="reset">
+            ${isEditMode ? 'Delete' : 'Cancel'}
           </button>
+          ${isEditMode ? `
+            <button class="event__rollup-btn" type="button">
+              <span class="visually-hidden">Open event</span>
+            </button>
+          ` : ''}
         </header>
 
         <section class="event__details">
@@ -139,16 +155,18 @@ export default class EventEditView extends AbstractStatefulView {
   #offers = null;
   #handleFormSubmit = null;
   #handleRollupClick = null;
+  #handleDeleteClick = null;
 
   #datepickerFrom = null;
   #datepickerTo = null;
 
-  constructor(event, destinations, offers, { onFormSubmit, onRollupClick }) {
+  constructor(destinations, offers, { event = createDefaultPoint(), onFormSubmit, onRollupClick, onDeleteClick }) {
     super();
     this.#destinations = destinations;
     this.#offers = offers;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
+    this.#handleDeleteClick = onDeleteClick;
 
     this._setState(EventEditView.parseEventToState(event));
     this._restoreHandlers();
@@ -176,14 +194,22 @@ export default class EventEditView extends AbstractStatefulView {
     this.element.querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
 
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#rollupClickHandler);
+    const rollupBtn = this.element.querySelector('.event__rollup-btn');
+    if (rollupBtn) {
+      rollupBtn.addEventListener('click', this.#rollupClickHandler);
+    }
+
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formDeleteClickHandler);
 
     this.element.querySelector('.event__type-group')
       .addEventListener('change', this.#typeChangeHandler);
 
     this.element.querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    this.element.querySelector('.event__input--price')
+      .addEventListener('change', this.#priceChangeHandler);
 
     const offersContainer = this.element.querySelector('.event__available-offers');
     if (offersContainer) {
@@ -192,6 +218,11 @@ export default class EventEditView extends AbstractStatefulView {
 
     this.#setDatepicker();
   }
+
+  #formDeleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick(EventEditView.parseStateToEvent(this._state));
+  };
 
   reset(event) {
     this.updateElement(
@@ -231,6 +262,16 @@ export default class EventEditView extends AbstractStatefulView {
 
     this.updateElement({
       destination: selectedDestination.id,
+    });
+  };
+
+  #priceChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    const priceValue = Number(evt.target.value) || 0;
+
+    this._setState({
+      basePrice: priceValue,
     });
   };
 

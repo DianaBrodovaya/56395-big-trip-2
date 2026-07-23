@@ -1,6 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import EventItemView from '../view/event-item-view.js';
 import EventEditView from '../view/event-edit-view.js';
+import { UserAction, UpdateType } from '../const.js';
 
 export default class EventPresenter {
   #eventListContainer = null;
@@ -38,12 +39,13 @@ export default class EventPresenter {
     );
 
     this.#eventEditComponent = new EventEditView(
-      this.#event,
       this.#destinations,
       this.#offers,
       {
+        event: this.#event,
         onFormSubmit: this.#handleFormSubmit,
-        onRollupClick: this.#handleFormRollupClick
+        onRollupClick: this.#handleFormRollupClick,
+        onDeleteClick: this.#handleDeleteClickHandler
       }
     );
 
@@ -60,6 +62,11 @@ export default class EventPresenter {
 
     remove(prevEventComponent);
     remove(prevEventEditComponent);
+  }
+
+  destroy() {
+    remove(this.#eventComponent);
+    remove(this.#eventEditComponent);
   }
 
   resetView() {
@@ -95,14 +102,19 @@ export default class EventPresenter {
   };
 
   #handleFavoriteClick = () => {
-    this.#handleDataChange({
-      ...this.#event,
-      isFavorite: !this.#event.isFavorite
-    });
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      { ...this.#event, isFavorite: !this.#event.isFavorite }
+    );
   };
 
   #handleFormSubmit = (updatedEvent) => {
-    this.#handleDataChange(updatedEvent);
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
+      updatedEvent
+    );
     this.#replaceFormToCard();
   };
 
@@ -111,8 +123,11 @@ export default class EventPresenter {
     this.#replaceFormToCard();
   };
 
-  destroy() {
-    remove(this.#eventComponent);
-    remove(this.#eventEditComponent);
-  }
+  #handleDeleteClickHandler = (deletedEvent) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      deletedEvent
+    );
+  };
 }

@@ -6,6 +6,7 @@ import FilterPresenter from './presenter/filter-presenter.js';
 const siteHeaderElement = document.querySelector('.trip-main');
 const filtersContainer = siteHeaderElement.querySelector('.trip-controls__filters');
 const siteMainElement = document.querySelector('.trip-events');
+const newEventButtonElement = siteHeaderElement.querySelector('.trip-main__event-add-btn');
 
 const eventModel = new EventModel();
 const filterModel = new FilterModel();
@@ -20,6 +21,16 @@ filterPresenter.init();
 const boardPresenter = new BoardPresenter({
   boardContainer: siteMainElement,
   eventModel,
-  filterModel
+  filterModel,
+  onNewEventDestroy: handleNewEventFormClose
 });
 boardPresenter.init();
+
+function handleNewEventFormClose() {
+  newEventButtonElement.disabled = false;
+}
+
+newEventButtonElement.addEventListener('click', () => {
+  newEventButtonElement.disabled = true;
+  boardPresenter.createEvent();
+});
