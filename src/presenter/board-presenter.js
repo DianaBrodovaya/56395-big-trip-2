@@ -2,11 +2,12 @@ import { render, remove } from '../framework/render.js';
 import EventListView from '../view/event-list-view.js';
 import SortView from '../view/sort-view.js';
 import NoEventView from '../view/no-event-view.js';
+import LoadingView from '../view/loading-view.js';
 import EventPresenter from './event-presenter.js';
 import NewEventPresenter from './new-event-presenter.js';
 import { sortEventDay, sortEventTime, sortEventPrice } from '../utils/sort.js';
-import { filter, FilterType } from '../utils/filters.js';
-import { SortType, UserAction, UpdateType } from '../const.js';
+import { filter } from '../utils/filters.js';
+import { SortType, FilterType, UserAction, UpdateType } from '../const.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -14,12 +15,14 @@ export default class BoardPresenter {
   #filterModel = null;
 
   #eventListComponent = new EventListView();
+  #loadingComponent = new LoadingView();
   #pointPresenters = new Map();
   #newEventPresenter = null;
 
   #sortComponent = null;
   #noEventComponent = null;
   #currentSortType = SortType.DAY;
+  #isLoading = true;
 
   constructor({ boardContainer, eventModel, filterModel, onNewEventDestroy }) {
     this.#boardContainer = boardContainer;
@@ -103,6 +106,12 @@ export default class BoardPresenter {
         this.#clearBoard({ resetSortType: true });
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#clearBoard();
+        this.#renderBoard();
+        break;
     }
   };
 
@@ -111,6 +120,7 @@ export default class BoardPresenter {
     this.#pointPresenters.clear();
 
     remove(this.#sortComponent);
+    remove(this.#loadingComponent);
     if (this.#noEventComponent) {
       remove(this.#noEventComponent);
     }
@@ -129,6 +139,11 @@ export default class BoardPresenter {
   }
 
   #renderBoard() {
+    if (this.#isLoading) {
+      render(this.#loadingComponent, this.#boardContainer);
+      return;
+    }
+
     const events = this.events;
 
     if (events.length === 0) {
