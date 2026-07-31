@@ -2,11 +2,12 @@ import { render, remove } from '../framework/render.js';
 import EventListView from '../view/event-list-view.js';
 import SortView from '../view/sort-view.js';
 import NoEventView from '../view/no-event-view.js';
+import LoadingView from '../view/loading-view.js';
 import EventPresenter from './event-presenter.js';
 import NewEventPresenter from './new-event-presenter.js';
 import { sortEventDay, sortEventTime, sortEventPrice } from '../utils/sort.js';
-import { filter, FilterType } from '../utils/filters.js';
-import { SortType, UserAction, UpdateType } from '../const.js';
+import { filter } from '../utils/filters.js';
+import { SortType, FilterType, UserAction, UpdateType } from '../const.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -14,12 +15,14 @@ export default class BoardPresenter {
   #filterModel = null;
 
   #eventListComponent = new EventListView();
-  #pointPresenters = new Map();
+  #loadingComponent = new LoadingView();
+  #eventPresenters = new Map();
   #newEventPresenter = null;
 
   #sortComponent = null;
   #noEventComponent = null;
   #currentSortType = SortType.DAY;
+  #isLoading = true;
 
   constructor({ boardContainer, eventModel, filterModel, onNewEventDestroy }) {
     this.#boardContainer = boardContainer;
@@ -72,18 +75,22 @@ export default class BoardPresenter {
 
   #handleModeChange = () => {
     this.#newEventPresenter.destroy();
-    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+    this.#eventPresenters.forEach((presenter) => presenter.resetView());
   };
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
-      case UserAction.UPDATE_POINT:
-        this.#eventModel.updateEvent(updateType, update);
+      case UserAction.UPDATE_EVENT:
+        try {
+          await this.#eventModel.updateEvent(updateType, update);
+        } catch {
+          throw new Error('Update event failed');
+        }
         break;
-      case UserAction.ADD_POINT:
+      case UserAction.ADD_EVENT:
         this.#eventModel.addEvent(updateType, update);
         break;
-      case UserAction.DELETE_POINT:
+      case UserAction.DELETE_EVENT:
         this.#eventModel.deleteEvent(updateType, update);
         break;
     }
@@ -92,7 +99,7 @@ export default class BoardPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#pointPresenters.get(data.id || data).init(data, this.#eventModel.destinations, this.#eventModel.offers);
+        this.#eventPresenters.get(data.id || data).init(data, this.#eventModel.destinations, this.#eventModel.offers);
         break;
       case UpdateType.MINOR:
         this.#clearBoard();
@@ -103,14 +110,21 @@ export default class BoardPresenter {
         this.#clearBoard({ resetSortType: true });
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#clearBoard();
+        this.#renderBoard();
+        break;
     }
   };
 
   #clearBoard({ resetSortType = false } = {}) {
-    this.#pointPresenters.forEach((presenter) => presenter.destroy());
-    this.#pointPresenters.clear();
+    this.#eventPresenters.forEach((presenter) => presenter.destroy());
+    this.#eventPresenters.clear();
 
     remove(this.#sortComponent);
+    remove(this.#loadingComponent);
     if (this.#noEventComponent) {
       remove(this.#noEventComponent);
     }
@@ -129,6 +143,11 @@ export default class BoardPresenter {
   }
 
   #renderBoard() {
+    if (this.#isLoading) {
+      render(this.#loadingComponent, this.#boardContainer);
+      return;
+    }
+
     const events = this.events;
 
     if (events.length === 0) {
@@ -147,7 +166,7 @@ export default class BoardPresenter {
         onDataChange: this.#handleViewAction
       });
       eventPresenter.init(event, this.#eventModel.destinations, this.#eventModel.offers);
-      this.#pointPresenters.set(event.id || event, eventPresenter);
+      this.#eventPresenters.set(event.id || event, eventPresenter);
     }
   }
 }

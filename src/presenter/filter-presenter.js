@@ -1,6 +1,6 @@
 import { render, replace, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
-import { generateFilters } from '../mock/filters-mock.js';
+import { filter } from '../utils/filters.js';
 
 export default class FilterPresenter {
   #filterContainer = null;
@@ -20,7 +20,11 @@ export default class FilterPresenter {
 
   get filters() {
     const events = this.#eventModel.events;
-    return generateFilters(events);
+
+    return Object.entries(filter).map(([filterType, filterEvents]) => ({
+      type: filterType,
+      count: filterEvents(events).length,
+    }));
   }
 
   init() {
