@@ -16,7 +16,7 @@ export default class BoardPresenter {
 
   #eventListComponent = new EventListView();
   #loadingComponent = new LoadingView();
-  #pointPresenters = new Map();
+  #eventPresenters = new Map();
   #newEventPresenter = null;
 
   #sortComponent = null;
@@ -75,18 +75,22 @@ export default class BoardPresenter {
 
   #handleModeChange = () => {
     this.#newEventPresenter.destroy();
-    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+    this.#eventPresenters.forEach((presenter) => presenter.resetView());
   };
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
-      case UserAction.UPDATE_POINT:
-        this.#eventModel.updateEvent(updateType, update);
+      case UserAction.UPDATE_EVENT:
+        try {
+          await this.#eventModel.updateEvent(updateType, update);
+        } catch {
+          throw new Error('Update event failed');
+        }
         break;
-      case UserAction.ADD_POINT:
+      case UserAction.ADD_EVENT:
         this.#eventModel.addEvent(updateType, update);
         break;
-      case UserAction.DELETE_POINT:
+      case UserAction.DELETE_EVENT:
         this.#eventModel.deleteEvent(updateType, update);
         break;
     }
@@ -95,7 +99,7 @@ export default class BoardPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#pointPresenters.get(data.id || data).init(data, this.#eventModel.destinations, this.#eventModel.offers);
+        this.#eventPresenters.get(data.id || data).init(data, this.#eventModel.destinations, this.#eventModel.offers);
         break;
       case UpdateType.MINOR:
         this.#clearBoard();
@@ -116,8 +120,8 @@ export default class BoardPresenter {
   };
 
   #clearBoard({ resetSortType = false } = {}) {
-    this.#pointPresenters.forEach((presenter) => presenter.destroy());
-    this.#pointPresenters.clear();
+    this.#eventPresenters.forEach((presenter) => presenter.destroy());
+    this.#eventPresenters.clear();
 
     remove(this.#sortComponent);
     remove(this.#loadingComponent);
@@ -162,7 +166,7 @@ export default class BoardPresenter {
         onDataChange: this.#handleViewAction
       });
       eventPresenter.init(event, this.#eventModel.destinations, this.#eventModel.offers);
-      this.#pointPresenters.set(event.id || event, eventPresenter);
+      this.#eventPresenters.set(event.id || event, eventPresenter);
     }
   }
 }

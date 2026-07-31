@@ -103,7 +103,7 @@ export default class EventPresenter {
 
   #handleFavoriteClick = () => {
     this.#handleDataChange(
-      UserAction.UPDATE_POINT,
+      UserAction.UPDATE_EVENT,
       UpdateType.PATCH,
       { ...this.#event, isFavorite: !this.#event.isFavorite }
     );
@@ -111,7 +111,7 @@ export default class EventPresenter {
 
   #handleFormSubmit = (updatedEvent) => {
     this.#handleDataChange(
-      UserAction.UPDATE_POINT,
+      UserAction.UPDATE_EVENT,
       UpdateType.MINOR,
       updatedEvent
     );
@@ -125,7 +125,7 @@ export default class EventPresenter {
 
   #handleDeleteClickHandler = (deletedEvent) => {
     this.#handleDataChange(
-      UserAction.DELETE_POINT,
+      UserAction.DELETE_EVENT,
       UpdateType.MINOR,
       deletedEvent
     );

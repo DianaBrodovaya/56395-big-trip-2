@@ -44,6 +44,26 @@ export default class EventModel extends Observable {
     this._notify(UpdateType.INIT);
   }
 
+  async updateEvent(updateType, updatedEvent) {
+    const index = this.#events.findIndex((event) => event.id === updatedEvent.id);
+
+    if (index === -1) {
+      throw new Error('Can\'t update unexisting event');
+    }
+    try {
+      const response = await this.#eventsApiService.updateEvent(updatedEvent);
+      const adaptedEvent = this.#adaptToClient(response);
+      this.#events = [
+        ...this.#events.slice(0, index),
+        adaptedEvent,
+        ...this.#events.slice(index + 1),
+      ];
+      this._notify(updateType, adaptedEvent);
+    } catch (err) {
+      throw new Error('Can\'t update event on server');
+    }
+  }
+
   #adaptToClient(event) {
     const adaptedEvent = {
       ...event,
