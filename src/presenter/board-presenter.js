@@ -81,17 +81,30 @@ export default class BoardPresenter {
   #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_EVENT:
+        this.#eventPresenters.get(update.id).setSaving();
         try {
           await this.#eventModel.updateEvent(updateType, update);
         } catch {
-          throw new Error('Update event failed');
+          this.#eventPresenters.get(update.id).setAborting();
         }
         break;
+
       case UserAction.ADD_EVENT:
-        this.#eventModel.addEvent(updateType, update);
+        this.#newEventPresenter.setSaving();
+        try {
+          await this.#eventModel.addEvent(updateType, update);
+        } catch {
+          this.#newEventPresenter.setAborting();
+        }
         break;
+
       case UserAction.DELETE_EVENT:
-        this.#eventModel.deleteEvent(updateType, update);
+        this.#eventPresenters.get(update.id).setDeleting();
+        try {
+          await this.#eventModel.deleteEvent(updateType, update);
+        } catch {
+          this.#eventPresenters.get(update.id).setAborting();
+        }
         break;
     }
   };
@@ -120,11 +133,12 @@ export default class BoardPresenter {
   };
 
   #clearBoard({ resetSortType = false } = {}) {
+    this.#newEventPresenter.destroy();
+
     this.#eventPresenters.forEach((presenter) => presenter.destroy());
     this.#eventPresenters.clear();
 
     remove(this.#sortComponent);
-    remove(this.#loadingComponent);
     if (this.#noEventComponent) {
       remove(this.#noEventComponent);
     }

@@ -46,17 +46,11 @@ export default class NewEventPresenter {
   }
 
   #handleFormSubmit = (newEvent) => {
-    const pointWithId = {
-      ...newEvent,
-      id: crypto.randomUUID()
-    };
-
     this.#handleDataChange(
-      UserAction.ADD_POINT,
+      UserAction.ADD_EVENT,
       UpdateType.MINOR,
-      pointWithId
+      newEvent
     );
-    this.destroy();
   };
 
   #handleDeleteClick = () => {
@@ -69,4 +63,30 @@ export default class NewEventPresenter {
       this.destroy();
     }
   };
+
+  setSaving() {
+    if (this.#eventEditComponent === null) {
+      return;
+    }
+    this.#eventEditComponent.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setAborting() {
+    if (this.#eventEditComponent === null) {
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#eventEditComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#eventEditComponent.shake(resetFormState);
+  }
 }
