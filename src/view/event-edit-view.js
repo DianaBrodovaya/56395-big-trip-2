@@ -15,7 +15,7 @@ const createDefaultPoint = () => ({
   type: 'flight'
 });
 
-const upFirstLetter = (word) => `${word.toUpperCase()}${word.slice(1)}`;
+const upFirstLetter = (word) => `${word[0].toUpperCase()}${word.slice(1)}`;
 const formatOfferTitle = (title) => title.split(' ').join('_');
 
 const createEventEditTemplate = (state, destinations, offers) => {
