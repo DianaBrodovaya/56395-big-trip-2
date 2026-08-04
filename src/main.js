@@ -58,7 +58,6 @@ const filterPresenter = new FilterPresenter({
   filterModel,
   eventModel
 });
-filterPresenter.init();
 
 const boardPresenter = new BoardPresenter({
   boardContainer: siteMainElement,
@@ -66,9 +65,6 @@ const boardPresenter = new BoardPresenter({
   filterModel,
   onNewEventDestroy: handleNewEventFormClose
 });
-boardPresenter.init();
-
-eventModel.init();
 
 function handleNewEventFormClose() {
   newEventButtonElement.disabled = false;
@@ -78,3 +74,8 @@ newEventButtonElement.addEventListener('click', () => {
   newEventButtonElement.disabled = true;
   boardPresenter.createEvent();
 });
+
+filterPresenter.init();
+boardPresenter.init();
+eventModel.init();
+

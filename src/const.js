@@ -10,17 +10,6 @@ export const EVENT_TYPES = [
   'restaurant',
 ];
 
-export const getDefaultEvent = () => ({
-  basePrice: 0,
-  dateFrom: new Date().toISOString(),
-  dateTo: new Date().toISOString(),
-  destination: 0,
-  isFavorite: false,
-  offers: [],
-  type: EVENT_TYPES[0],
-});
-
-
 export const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
