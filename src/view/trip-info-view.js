@@ -31,8 +31,8 @@ export default class TripInfoView extends AbstractView {
 
   #getRoute() {
     const names = this.#events.map((event) => {
-      const destinationObj = this.#destinations.find((item) => item.id === event.destination);
-      return destinationObj ? destinationObj.name : '';
+      const currentDestination = this.#destinations.find((item) => item.id === event.destination);
+      return currentDestination ? currentDestination.name : '';
     }).filter(Boolean);
 
     if (names.length === 0) {
@@ -68,9 +68,9 @@ export default class TripInfoView extends AbstractView {
     return this.#events.reduce((total, event) => {
       let price = total + event.basePrice;
 
-      const typeOffersObj = this.#offers.find((offer) => offer.type === event.type);
-      if (typeOffersObj) {
-        const selectedOffers = typeOffersObj.offers.filter((offer) => event.offers.includes(offer.id));
+      const offersByType = this.#offers.find((offer) => offer.type === event.type);
+      if (offersByType) {
+        const selectedOffers = offersByType.offers.filter((offer) => event.offers.includes(offer.id));
         price += selectedOffers.reduce((sum, offer) => sum + offer.price, 0);
       }
 

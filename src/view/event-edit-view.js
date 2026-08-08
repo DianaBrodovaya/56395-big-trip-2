@@ -27,11 +27,11 @@ const createEventEditTemplate = (state, destinations, offers) => {
   const eventDestination = destinations.find((item) => item.id === destination);
   const { name, description, pictures } = eventDestination || {};
 
-  const typeOffersObj = offers.find((offer) => offer.type === type);
-  const typeOffers = typeOffersObj ? typeOffersObj.offers : [];
+  const offersByType = offers.find((offer) => offer.type === type);
+  const typeOffers = offersByType ? offersByType.offers : [];
 
-  const labelTextDel = isDeleting ? 'Deleting...' : 'Delete';
-  const buttonTextReset = isEditMode ? labelTextDel : 'Cancel';
+  const labelTextDelete = isDeleting ? 'Deleting...' : 'Delete';
+  const buttonTextReset = isEditMode ? labelTextDelete : 'Cancel';
   const buttonTextSave = isSaving ? 'Saving...' : 'Save';
 
   return (

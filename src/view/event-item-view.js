@@ -7,8 +7,8 @@ const createEventItemTemplate = (event, destinations, offers, isDisabled) => {
   const { basePrice, dateFrom, dateTo, isFavorite, type, destination, offers: selectedOffersIds } = event;
   const eventDestination = destinations.find((item) => item.id === destination);
   const cityName = eventDestination ? eventDestination.name : '';
-  const typeOffersObj = offers.find((offer) => offer.type === type);
-  const typeOffers = typeOffersObj ? typeOffersObj.offers : [];
+  const offersByType = offers.find((offer) => offer.type === type);
+  const typeOffers = offersByType ? offersByType.offers : [];
   const selectedOffers = typeOffers.filter((offer) => selectedOffersIds.includes(offer.id));
 
   return (
