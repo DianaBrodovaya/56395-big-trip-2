@@ -24,6 +24,7 @@ export default class EventsApiService extends ApiService {
   }
 
   async updateEvent(event) {
+    //await new Promise((resolve) => setTimeout(resolve, 2500));
     const response = await this._load({
       url: `points/${event.id}`,
       method: Method.PUT,

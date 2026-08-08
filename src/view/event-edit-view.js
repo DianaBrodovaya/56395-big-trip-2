@@ -1,9 +1,10 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { EVENT_TYPES } from '../const.js';
+import { getEventTitle } from '../utils/common.js';
 import { humanizeDate } from '../utils/date.js';
-
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import he from 'he';
 
 const createDefaultPoint = () => ({
   basePrice: 0,
@@ -65,10 +66,10 @@ const createEventEditTemplate = (state, destinations, offers) => {
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-${eventId}">
-              ${type}
+              ${getEventTitle(type)}
             </label>
             <input class="event__input  event__input--destination" id="event-destination-${eventId}" type="text"
-              name="event-destination" value="${name || ''}" list="destination-list-edit-${eventId}" autocomplete="off" required ${isDisabled ? 'disabled' : ''}>
+              name="event-destination" value="${he.escape(name || '')}" list="destination-list-edit-${eventId}" autocomplete="off" required ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-edit-${eventId}">
               ${destinations.map((item) => `
                 <option value="${item.name}"></option>
@@ -98,7 +99,7 @@ const createEventEditTemplate = (state, destinations, offers) => {
               &euro;
             </label>
             <input class="event__input  event__input--price" id="event-price-${eventId}" type="number" min="1"
-            name="event-price" value="${basePrice}" required ${isDisabled ? 'disabled' : ''}>
+            name="event-price" value="${he.escape(String(basePrice))}" required ${isDisabled ? 'disabled' : ''}>
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>
@@ -147,7 +148,7 @@ const createEventEditTemplate = (state, destinations, offers) => {
           ${eventDestination && (description || (pictures && pictures.length)) ? `
             <section class="event__section  event__section--destination">
               <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-              ${description ? `<p class="event__destination-description">${description}</p>` : ''}
+              ${description ? `<p class="event__destination-description">${he.escape(description)}</p>` : ''}
               ${pictures && pictures.length ? `
                 <div class="event__photos-container">
                   <div class="event__photos-tape">

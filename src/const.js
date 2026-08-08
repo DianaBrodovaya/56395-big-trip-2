@@ -10,6 +10,12 @@ export const EVENT_TYPES = [
   'restaurant',
 ];
 
+export const TYPE_IN_PREPOSITIONS = [
+  'check-in',
+  'sightseeing',
+  'restaurant'
+];
+
 export const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',

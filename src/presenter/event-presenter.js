@@ -136,6 +136,8 @@ export default class EventPresenter {
         isDisabled: true,
         isSaving: true,
       });
+    } else {
+      this.#eventComponent.setDisabled(true);
     }
   }
 
@@ -150,6 +152,7 @@ export default class EventPresenter {
 
   setAborting() {
     if (!this.#isEditMode) {
+      this.#eventComponent.setDisabled(false);
       this.#eventComponent.shake();
       return;
     }

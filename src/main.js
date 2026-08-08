@@ -7,7 +7,7 @@ import EventsApiService from './events-api-service.js';
 import TripInfoView from './view/trip-info-view.js';
 import { sortEventDay } from './utils/sort.js';
 
-const AUTHORIZATION = 'Basic dsfa6656aswqey8asq4dr';
+const AUTHORIZATION = `Basic ${Math.random().toString(36).substring(2, 15)}`;
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
 const siteHeaderElement = document.querySelector('.trip-main');
@@ -77,5 +77,12 @@ newEventButtonElement.addEventListener('click', () => {
 
 filterPresenter.init();
 boardPresenter.init();
-eventModel.init();
+
+eventModel.init()
+  .then(() => {
+    newEventButtonElement.disabled = false;
+  })
+  .catch(() => {
+    newEventButtonElement.disabled = true;
+  });
 

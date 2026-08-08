@@ -1,4 +1,5 @@
 import { render, remove } from '../framework/render.js';
+import FailedLoadView from '../view/failed-load-view.js';
 import EventListView from '../view/event-list-view.js';
 import SortView from '../view/sort-view.js';
 import NoEventView from '../view/no-event-view.js';
@@ -10,6 +11,9 @@ import { filter } from '../utils/filters.js';
 import { SortType, FilterType, UserAction, UpdateType } from '../const.js';
 
 export default class BoardPresenter {
+  #failedLoadComponent = new FailedLoadView();
+  #isFailedLoad = false;
+
   #boardContainer = null;
   #eventModel = null;
   #filterModel = null;
@@ -32,7 +36,10 @@ export default class BoardPresenter {
     this.#newEventPresenter = new NewEventPresenter({
       eventListContainer: this.#eventListComponent.element,
       onDataChange: this.#handleViewAction,
-      onDestroy: onNewEventDestroy
+      onDestroy: () => {
+        onNewEventDestroy();
+        this.#handleNewEventDestroy();
+      }
     });
 
     this.#eventModel.addObserver(this.#handleModelEvent);
@@ -60,6 +67,13 @@ export default class BoardPresenter {
   createEvent() {
     this.#currentSortType = SortType.DAY;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+
+    if (this.#noEventComponent) {
+      remove(this.#noEventComponent);
+      this.#noEventComponent = null;
+      render(this.#eventListComponent, this.#boardContainer);
+    }
+
     this.#newEventPresenter.init(this.#eventModel.destinations, this.#eventModel.offers);
   }
 
@@ -76,6 +90,13 @@ export default class BoardPresenter {
   #handleModeChange = () => {
     this.#newEventPresenter.destroy();
     this.#eventPresenters.forEach((presenter) => presenter.resetView());
+  };
+
+  #handleNewEventDestroy = () => {
+    if (this.events.length === 0) {
+      this.#noEventComponent = new NoEventView(this.#filterModel.filter);
+      render(this.#noEventComponent, this.#boardContainer);
+    }
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
@@ -126,6 +147,9 @@ export default class BoardPresenter {
       case UpdateType.INIT:
         this.#isLoading = false;
         remove(this.#loadingComponent);
+        if (data && data.isError) {
+          this.#isFailedLoad = true;
+        }
         this.#clearBoard();
         this.#renderBoard();
         break;
@@ -159,6 +183,11 @@ export default class BoardPresenter {
   #renderBoard() {
     if (this.#isLoading) {
       render(this.#loadingComponent, this.#boardContainer);
+      return;
+    }
+
+    if (this.#isFailedLoad) {
+      render(this.#failedLoadComponent, this.#boardContainer);
       return;
     }
 
