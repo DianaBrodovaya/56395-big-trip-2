@@ -1,12 +1,14 @@
 import dayjs from 'dayjs';
 
-const DATE_FORMAT = 'DD/MM/YY HH:mm';
-const TIME_FORMAT = 'HH:mm';
-const DAY_FORMAT = 'MMM D';
+const DateFormat = {
+  DATE: 'DD/MM/YY HH:mm',
+  TIME: 'HH:mm',
+  DAY: 'MMM D',
+};
 
-const humanizeDate = (date) => date ? dayjs(date).format(DATE_FORMAT) : '';
-const humanizeTime = (date) => date ? dayjs(date).format(TIME_FORMAT) : '';
-const humanizeDay = (date) => date ? dayjs(date).format(DAY_FORMAT).toUpperCase() : '';
+const humanizeDate = (date) => date ? dayjs(date).format(DateFormat.DATE) : '';
+const humanizeTime = (date) => date ? dayjs(date).format(DateFormat.TIME) : '';
+const humanizeDay = (date) => date ? dayjs(date).format(DateFormat.DAY).toUpperCase() : '';
 
 const getDuration = (startDate, endDate) => {
   const start = dayjs(startDate);

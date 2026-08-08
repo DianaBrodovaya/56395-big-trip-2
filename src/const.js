@@ -1,20 +1,20 @@
-export const EVENT_TYPES = [
-  'taxi',
-  'bus',
-  'train',
-  'ship',
-  'drive',
-  'flight',
-  'check-in',
-  'sightseeing',
-  'restaurant',
-];
+export const EventType = {
+  TAXI: 'taxi',
+  BUS: 'bus',
+  TRAIN: 'train',
+  SHIP: 'ship',
+  DRIVE: 'drive',
+  FLIGHT: 'flight',
+  CHECK_IN: 'check-in',
+  SIGHTSEEING: 'sightseeing',
+  RESTAURANT: 'restaurant',
+};
 
-export const TYPE_IN_PREPOSITIONS = [
-  'check-in',
-  'sightseeing',
-  'restaurant'
-];
+export const TypeInPreposition = {
+  CHECK_IN: 'check-in',
+  SIGHTSEEING: 'sightseeing',
+  RESTAURANT: 'restaurant'
+};
 
 export const FilterType = {
   EVERYTHING: 'everything',

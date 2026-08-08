@@ -1,5 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { EVENT_TYPES } from '../const.js';
+import { EventType } from '../const.js';
 import { getEventTitle } from '../utils/common.js';
 import { humanizeDate } from '../utils/date.js';
 import flatpickr from 'flatpickr';
@@ -49,7 +49,7 @@ const createEventEditTemplate = (state, destinations, offers) => {
               <fieldset class="event__type-group" ${isDisabled ? 'disabled' : ''}>
                 <legend class="visually-hidden">Event type</legend>
 
-                ${EVENT_TYPES.map((eventType) => `
+                ${Object.values(EventType).map((eventType) => `
                   <div class="event__type-item">
                     <input id="event-type-${eventType}-${eventId}"
                            class="event__type-input  visually-hidden"

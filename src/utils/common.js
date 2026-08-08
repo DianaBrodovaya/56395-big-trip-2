@@ -1,10 +1,10 @@
 import he from 'he';
-import { TYPE_IN_PREPOSITIONS } from '../const';
+import { TypeInPreposition } from '../const';
 
 const updateItem = (items, update) => items.map((item) => item.id === update.id ? update : item);
 
 const getEventTitle = (type, cityName = '') => {
-  const preposition = TYPE_IN_PREPOSITIONS.includes(type) ? 'in' : 'to';
+  const preposition = Object.values(TypeInPreposition).includes(type) ? 'in' : 'to';
   const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
 
   if (cityName) {
