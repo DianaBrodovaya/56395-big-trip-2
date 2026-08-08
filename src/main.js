@@ -16,9 +16,7 @@ const siteMainElement = document.querySelector('.trip-events');
 const newEventButtonElement = siteHeaderElement.querySelector('.trip-main__event-add-btn');
 
 const filterModel = new FilterModel();
-
 const eventsApiService = new EventsApiService(END_POINT, AUTHORIZATION);
-
 const eventModel = new EventModel({
   eventsApiService
 });
@@ -49,9 +47,9 @@ const renderTripInfo = () => {
   remove(prevTripInfoComponent);
 };
 
-eventModel.addObserver(() => {
-  renderTripInfo();
-});
+function handleNewEventFormClose() {
+  newEventButtonElement.disabled = false;
+}
 
 const filterPresenter = new FilterPresenter({
   filterContainer: filtersContainer,
@@ -66,13 +64,15 @@ const boardPresenter = new BoardPresenter({
   onNewEventDestroy: handleNewEventFormClose
 });
 
-function handleNewEventFormClose() {
-  newEventButtonElement.disabled = false;
-}
+newEventButtonElement.disabled = true;
 
 newEventButtonElement.addEventListener('click', () => {
   newEventButtonElement.disabled = true;
   boardPresenter.createEvent();
+});
+
+eventModel.addObserver(() => {
+  renderTripInfo();
 });
 
 filterPresenter.init();
@@ -85,4 +85,3 @@ eventModel.init()
   .catch(() => {
     newEventButtonElement.disabled = true;
   });
-
