@@ -1,8 +1,6 @@
 import he from 'he';
 import { TypeInPreposition } from '../const';
 
-const updateItem = (items, update) => items.map((item) => item.id === update.id ? update : item);
-
 const getEventTitle = (type, cityName = '') => {
   const preposition = Object.values(TypeInPreposition).includes(type) ? 'in' : 'to';
   const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
@@ -14,4 +12,4 @@ const getEventTitle = (type, cityName = '') => {
   return `${formattedType} ${preposition}`;
 };
 
-export { updateItem, getEventTitle };
+export { getEventTitle };

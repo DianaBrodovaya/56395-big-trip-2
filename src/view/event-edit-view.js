@@ -64,18 +64,18 @@ const createEventEditTemplate = (state, destinations, offers) => {
             </div>
           </div>
 
-          <div class="event__field-group  event__field-group--destination">
+          <div class="event__field-group event__field-group--destination" style="position: relative">
             <label class="event__label  event__type-output" for="event-destination-${eventId}">
               ${getEventTitle(type)}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-${eventId}" type="text"
-              name="event-destination" value="${he.escape(name || '')}" list="destination-list-edit-${eventId}" autocomplete="off" required ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input event__input--destination" id="event-destination-${eventId}" type="text"
+              name="event-destination" value="${he.escape(name || '')}" list="destination-list-edit-${eventId}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-edit-${eventId}">
               ${destinations.map((item) => `
                 <option value="${item.name}"></option>
               `).join('')}
             </datalist>
-            <span class="event__destination-error" style="color: red; display: none; position: absolute; bottom: -20px; left: 10px; font-size: 11px;">
+            <span class="event__destination-error" style="color: red; display: none; position: absolute; bottom: -22px; left: 3px; font-size: 12px;">
               Выберите город из списка
             </span>
           </div>
@@ -83,23 +83,26 @@ const createEventEditTemplate = (state, destinations, offers) => {
           <div class="event__field-group  event__field-group--time" style="position: relative;">
             <label class="visually-hidden" for="event-start-time-${eventId}">From</label>
             <input class="event__input  event__input--time" id="event-start-time-${eventId}" type="text"
-              name="event-start-time" value="${humanizeDate(dateFrom)}" required ${isDisabled ? 'disabled' : ''}>
+              name="event-start-time" value="${humanizeDate(dateFrom)}" ${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-${eventId}">To</label>
             <input class="event__input  event__input--time" id="event-end-time-${eventId}" type="text"
-              name="event-end-time" value="${humanizeDate(dateTo)}" required ${isDisabled ? 'disabled' : ''}>
-            <span class="event__time-error" style="color: red; display: none; position: absolute; bottom: -20px; left: 10px; font-size: 11px;">
+              name="event-end-time" value="${humanizeDate(dateTo)}" ${isDisabled ? 'disabled' : ''}>
+            <span class="event__time-error" style="color: red; display: none; position: absolute; bottom: -22px; left: 3px; font-size: 12px;">
               Заполните обе даты поездки
             </span>
           </div>
 
-          <div class="event__field-group  event__field-group--price">
+          <div class="event__field-group  event__field-group--price" style="position: relative;">
             <label class="event__label" for="event-price-${eventId}">
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-${eventId}" type="number" min="1"
-            name="event-price" value="${he.escape(String(basePrice))}" required ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input  event__input--price" id="event-price-${eventId}" type="number"
+            name="event-price" value="${he.escape(String(basePrice))}" ${isDisabled ? 'disabled' : ''}>
+            <span class="event__price-error" style="color: red; display: none; position: absolute; bottom: -22px; left: 0; font-size: 12px;">
+              Заполните цену
+            </span>
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>
@@ -253,33 +256,70 @@ export default class EventEditView extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
 
+    const destinationInput = this.element.querySelector('.event__input--destination');
     const startTimeInput = this.element.querySelector('[name="event-start-time"]');
     const endTimeInput = this.element.querySelector('[name="event-end-time"]');
-    const destinationInput = this.element.querySelector('.event__input--destination');
+    const priceInput = this.element.querySelector('.event__input--price');
+    const destinationError = this.element.querySelector('.event__destination-error');
+    const timeError = this.element.querySelector('.event__time-error');
+    const priceError = this.element.querySelector('.event__price-error');
 
     const isValidDestination = this.#destinations.some((item) => item.name === destinationInput.value);
     if (!isValidDestination) {
       destinationInput.style.outline = '2px solid red';
+      if (destinationError) {
+        destinationError.style.display = 'block';
+      }
       destinationInput.focus();
       return;
     } else {
       destinationInput.style.outline = '';
+      if (destinationError) {
+        destinationError.style.display = 'none';
+      }
     }
 
-    if (!this._state.dateFrom) {
-      startTimeInput.style.outline = '2px solid red';
-      startTimeInput.focus();
+    if (!this._state.dateFrom || !this._state.dateTo) {
+      if (!this._state.dateFrom && startTimeInput) {
+        startTimeInput.style.outline = '2px solid red';
+      }
+      if (!this._state.dateTo && endTimeInput) {
+        endTimeInput.style.outline = '2px solid red';
+      }
+
+      if (timeError) {
+        timeError.style.display = 'block';
+      }
       return;
     } else {
-      startTimeInput.style.outline = '';
+      if (startTimeInput) {
+        startTimeInput.style.outline = '';
+      }
+      if (endTimeInput) {
+        endTimeInput.style.outline = '';
+      }
+      if (timeError) {
+        timeError.style.display = 'none';
+      }
     }
 
-    if (!this._state.dateTo) {
-      endTimeInput.style.outline = '2px solid red';
-      endTimeInput.focus();
+    const isPriceInvalid = !this._state.basePrice || this._state.basePrice <= 0;
+    if (isPriceInvalid) {
+      if (priceInput) {
+        priceInput.style.outline = '2px solid red';
+        priceInput.focus();
+      }
+      if (priceError) {
+        priceError.style.display = 'block';
+      }
       return;
     } else {
-      endTimeInput.style.outline = '';
+      if (priceInput) {
+        priceInput.style.outline = '';
+      }
+      if (priceError) {
+        priceError.style.display = 'none';
+      }
     }
 
     this.#handleFormSubmit(EventEditView.#parseStateToEvent(this._state));
@@ -318,6 +358,11 @@ export default class EventEditView extends AbstractStatefulView {
 
     evt.target.style.outline = '';
     this.#destinationNameBackup = currentDestination.name;
+
+    const destinationError = this.element.querySelector('.event__destination-error');
+    if (destinationError) {
+      destinationError.style.display = 'none';
+    }
 
     this.updateElement({
       destination: currentDestination.id,
