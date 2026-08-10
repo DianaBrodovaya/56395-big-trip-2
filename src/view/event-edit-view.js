@@ -183,7 +183,7 @@ export default class EventEditView extends AbstractStatefulView {
     this.#handleRollupClick = onRollupClick;
     this.#handleDeleteClick = onDeleteClick;
 
-    this._setState(EventEditView.parseEventToState(event));
+    this._setState(EventEditView.#parseEventToState(event));
     this._restoreHandlers();
   }
 
@@ -207,7 +207,7 @@ export default class EventEditView extends AbstractStatefulView {
 
   reset(event) {
     this.updateElement(
-      EventEditView.parseEventToState(event),
+      EventEditView.#parseEventToState(event),
     );
   }
 
@@ -282,7 +282,7 @@ export default class EventEditView extends AbstractStatefulView {
       endTimeInput.style.outline = '';
     }
 
-    this.#handleFormSubmit(EventEditView.parseStateToEvent(this._state));
+    this.#handleFormSubmit(EventEditView.#parseStateToEvent(this._state));
   };
 
   #rollupClickHandler = (evt) => {
@@ -292,7 +292,7 @@ export default class EventEditView extends AbstractStatefulView {
 
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick(EventEditView.parseStateToEvent(this._state));
+    this.#handleDeleteClick(EventEditView.#parseStateToEvent(this._state));
   };
 
   #typeChangeHandler = (evt) => {
@@ -427,7 +427,7 @@ export default class EventEditView extends AbstractStatefulView {
     );
   }
 
-  static parseEventToState(event) {
+  static #parseEventToState(event) {
     return {
       ...event,
       isDisabled: false,
@@ -436,7 +436,7 @@ export default class EventEditView extends AbstractStatefulView {
     };
   }
 
-  static parseStateToEvent(state) {
+  static #parseStateToEvent(state) {
     const event = { ...state };
     delete event.isDisabled;
     delete event.isSaving;
