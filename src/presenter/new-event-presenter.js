@@ -30,7 +30,7 @@ export default class NewEventPresenter {
     );
 
     render(this.#eventEditComponent, this.#eventListContainer, RenderPosition.AFTERBEGIN);
-    document.addEventListener('keydown', this.#escKeyDownHandler);
+    document.addEventListener('keydown', this.#documentKeydownHandler);
   }
 
   destroy() {
@@ -42,7 +42,7 @@ export default class NewEventPresenter {
     remove(this.#eventEditComponent);
     this.#eventEditComponent = null;
 
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
   }
 
   #handleFormSubmit = (newEvent) => {
@@ -57,7 +57,7 @@ export default class NewEventPresenter {
     this.destroy();
   };
 
-  #escKeyDownHandler = (evt) => {
+  #documentKeydownHandler = (evt) => {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
       this.destroy();

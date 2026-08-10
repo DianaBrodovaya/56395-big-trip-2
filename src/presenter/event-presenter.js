@@ -45,7 +45,7 @@ export default class EventPresenter {
         event: this.#event,
         onFormSubmit: this.#handleFormSubmit,
         onRollupClick: this.#handleFormRollupClick,
-        onDeleteClick: this.#handleDeleteClickHandler
+        onDeleteClick: this.#handleDeleteClick
       }
     );
 
@@ -67,7 +67,7 @@ export default class EventPresenter {
   destroy() {
     remove(this.#eventComponent);
     remove(this.#eventEditComponent);
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
   }
 
   resetView() {
@@ -80,17 +80,17 @@ export default class EventPresenter {
   #replaceCardToForm = () => {
     this.#handleModeChange();
     replace(this.#eventEditComponent, this.#eventComponent);
-    document.addEventListener('keydown', this.#escKeyDownHandler);
+    document.addEventListener('keydown', this.#documentKeydownHandler);
     this.#isEditMode = true;
   };
 
   #replaceFormToCard = () => {
     replace(this.#eventComponent, this.#eventEditComponent);
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
     this.#isEditMode = false;
   };
 
-  #escKeyDownHandler = (evt) => {
+  #documentKeydownHandler = (evt) => {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
       this.#eventEditComponent.reset(this.#event);
@@ -123,7 +123,7 @@ export default class EventPresenter {
     this.#replaceFormToCard();
   };
 
-  #handleDeleteClickHandler = (deletedEvent) => {
+  #handleDeleteClick = (deletedEvent) => {
     this.#handleDataChange(
       UserAction.DELETE_EVENT,
       UpdateType.MINOR,
