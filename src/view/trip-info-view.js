@@ -1,6 +1,8 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 
+const MAX_CITIES_IN_ROUTE = 3;
+
 const createTripInfoTemplate = (route, dates, totalPrice) => (
   `<section class="trip-main__trip-info  trip-info">
     <div class="trip-info__main">
@@ -39,7 +41,7 @@ export default class TripInfoView extends AbstractView {
       return '';
     }
 
-    if (names.length <= 3) {
+    if (names.length <= MAX_CITIES_IN_ROUTE) {
       return names.join(' &mdash; ');
     }
 

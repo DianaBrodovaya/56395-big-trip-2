@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
 
+const MINUTES_IN_HOUR = 60;
+const HOURS_IN_DAY = 24;
+const MIN_DIGITS_COUNT = 2;
+
 const DateFormat = {
   DATE: 'DD/MM/YY HH:mm',
   TIME: 'HH:mm',
@@ -18,10 +22,10 @@ const getDuration = (startDate, endDate) => {
   const diffInHours = end.diff(start, 'hour');
   const diffInDays = end.diff(start, 'day');
 
-  const formatValue = (value) => String(value).padStart(2, '0');
+  const formatValue = (value) => String(value).padStart(MIN_DIGITS_COUNT, '0');
 
-  const minutes = formatValue(diffInMinutes % 60);
-  const hours = formatValue(diffInHours % 24);
+  const minutes = formatValue(diffInMinutes % MINUTES_IN_HOUR);
+  const hours = formatValue(diffInHours % HOURS_IN_DAY);
   const days = formatValue(diffInDays);
 
   if (diffInDays > 0) {
