@@ -19,13 +19,92 @@ const createDefaultPoint = () => ({
 
 const formatOfferTitle = (title) => title.split(' ').join('_');
 
+const createEventTypesTemplate = (currentType, eventId, isDisabled) => `
+  <div class="event__type-list">
+    <fieldset class="event__type-group" ${isDisabled ? 'disabled' : ''}>
+      <legend class="visually-hidden">Event type</legend>
+
+      ${Object.values(EventType).map((eventType) => `
+        <div class="event__type-item">
+          <input id="event-type-${eventType}-${eventId}"
+                class="event__type-input  visually-hidden"
+                type="radio"
+                name="event-type"
+                value="${eventType}"
+                ${eventType === currentType ? 'checked' : ''}>
+          <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-${eventId}">${upFirstLetter(eventType)}</label>
+        </div>
+      `).join('')}
+    </fieldset>
+  </div>
+`;
+
+const createOffersTemplate = (typeOffers, selectedOffersIds, eventId, isDisabled) => {
+  if (typeOffers.length === 0) {
+    return '';
+  }
+
+  return `
+    <section class="event__section  event__section--offers">
+      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+        <div class="event__available-offers">
+          ${typeOffers.map((typeOffer) => {
+    const isChecked = selectedOffersIds.includes(typeOffer.id) ? 'checked' : '';
+    const formattedTitle = formatOfferTitle(typeOffer.title);
+    return (
+      `<div class="event__offer-selector">
+                <input class="event__offer-checkbox  visually-hidden"
+                      id="event-offer-${formattedTitle}-${eventId}"
+                      type="checkbox"
+                      name="event-offer-${formattedTitle}"
+                      data-offer-id="${typeOffer.id}"
+                      ${isChecked}
+                      ${isDisabled ? 'disabled' : ''}>
+                <label class="event__offer-label" for="event-offer-${formattedTitle}-${eventId}">
+                  <span class="event__offer-title">${typeOffer.title}</span>
+                  &plus;&euro;&nbsp;
+                  <span class="event__offer-price">${typeOffer.price}</span>
+                </label>
+              </div>`
+    );
+  }).join('')}
+        </div>
+    </section>
+  `;
+};
+
+const createDestinationTemplate = (pointDestination) => {
+  if (!pointDestination) {
+    return '';
+  }
+
+  const { description, pictures } = pointDestination;
+  if (!description && (!pictures || pictures.length === 0)) {
+    return '';
+  }
+
+  return `
+    <section class="event__section  event__section--destination">
+    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+      ${description ? `<p class="event__destination-description">${he.escape(description)}</p>` : ''}
+      ${pictures && pictures.length ? `
+        <div class="event__photos-container">
+          <div class="event__photos-tape">
+            ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${he.escape(picture.description || '')}">`).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </section>
+  `;
+};
+
 const createEventEditTemplate = (state, destinations, offers) => {
   const { dateFrom, dateTo, basePrice, type, destination, offers: selectedOffersIds, id, isDisabled, isSaving, isDeleting } = state;
   const eventId = id || 0;
   const isEditMode = id !== undefined;
 
   const eventDestination = destinations.find((item) => item.id === destination);
-  const { name, description, pictures } = eventDestination || {};
+  const cityName = eventDestination ? eventDestination.name : '';
 
   const offersByType = offers.find((offer) => offer.type === type);
   const typeOffers = offersByType ? offersByType.offers : [];
@@ -45,23 +124,8 @@ const createEventEditTemplate = (state, destinations, offers) => {
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${eventId}" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
-            <div class="event__type-list">
-              <fieldset class="event__type-group" ${isDisabled ? 'disabled' : ''}>
-                <legend class="visually-hidden">Event type</legend>
+            ${createEventTypesTemplate(type, eventId, isDisabled)}
 
-                ${Object.values(EventType).map((eventType) => `
-                  <div class="event__type-item">
-                    <input id="event-type-${eventType}-${eventId}"
-                           class="event__type-input  visually-hidden"
-                           type="radio"
-                           name="event-type"
-                           value="${eventType}"
-                           ${eventType === type ? 'checked' : ''}>
-                    <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-${eventId}">${upFirstLetter(eventType)}</label>
-                  </div>
-                `).join('')}
-              </fieldset>
-            </div>
           </div>
 
           <div class="event__field-group event__field-group--destination" style="position: relative">
@@ -69,7 +133,7 @@ const createEventEditTemplate = (state, destinations, offers) => {
               ${getEventTitle(type)}
             </label>
             <input class="event__input event__input--destination" id="event-destination-${eventId}" type="text"
-              name="event-destination" value="${he.escape(name || '')}" list="destination-list-edit-${eventId}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
+              name="event-destination" value="${he.escape(cityName || '')}" list="destination-list-edit-${eventId}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-edit-${eventId}">
               ${destinations.map((item) => `
                 <option value="${item.name}"></option>
@@ -120,47 +184,9 @@ const createEventEditTemplate = (state, destinations, offers) => {
         </header>
 
         <section class="event__details">
-          ${typeOffers.length ? `
-            <section class="event__section  event__section--offers">
-              <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-              <div class="event__available-offers">
-                ${typeOffers.map((typeOffer) => {
-      const isChecked = selectedOffersIds.includes(typeOffer.id) ? 'checked' : '';
-      const formattedTitle = formatOfferTitle(typeOffer.title);
-      return (
-        `<div class="event__offer-selector">
-                      <input class="event__offer-checkbox  visually-hidden"
-                             id="event-offer-${formattedTitle}-${eventId}"
-                             type="checkbox"
-                             name="event-offer-${formattedTitle}"
-                             data-offer-id="${typeOffer.id}"
-                             ${isChecked}
-                             ${isDisabled ? 'disabled' : ''}>
-                      <label class="event__offer-label" for="event-offer-${formattedTitle}-${eventId}">
-                        <span class="event__offer-title">${typeOffer.title}</span>
-                        &plus;&euro;&nbsp;
-                        <span class="event__offer-price">${typeOffer.price}</span>
-                      </label>
-                    </div>`
-      );
-    }).join('')}
-              </div>
-            </section>
-          ` : ''}
+          ${createOffersTemplate(typeOffers, selectedOffersIds, eventId, isDisabled)}
 
-          ${eventDestination && (description || (pictures && pictures.length)) ? `
-            <section class="event__section  event__section--destination">
-              <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-              ${description ? `<p class="event__destination-description">${he.escape(description)}</p>` : ''}
-              ${pictures && pictures.length ? `
-                <div class="event__photos-container">
-                  <div class="event__photos-tape">
-                    ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${he.escape(picture.description || '')}">`).join('')}
-                  </div>
-                </div>
-              ` : ''}
-            </section>
-          ` : ''}
+          ${createDestinationTemplate(eventDestination)}
         </section>
       </form>
     </li>`
