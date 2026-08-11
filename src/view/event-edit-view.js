@@ -325,6 +325,42 @@ export default class EventEditView extends AbstractStatefulView {
     this.#handleFormSubmit(EventEditView.#parseStateToEvent(this._state));
   };
 
+  #setDatepicker() {
+    const startTimeElement = this.element.querySelector('[name="event-start-time"]');
+    const endTimeElement = this.element.querySelector('[name="event-end-time"]');
+
+    if (this._state.isDisabled) {
+      return;
+    }
+
+    const commonConfig = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      'time_24hr': true,
+      monthSelectorType: 'static',
+    };
+
+    this.#datepickerFrom = flatpickr(
+      startTimeElement,
+      {
+        ...commonConfig,
+        defaultDate: this._state.dateFrom ? this._state.dateFrom : '',
+        maxDate: this._state.dateTo ? this._state.dateTo : '',
+        onChange: this.#dateFromChangeHandler,
+      },
+    );
+
+    this.#datepickerTo = flatpickr(
+      endTimeElement,
+      {
+        ...commonConfig,
+        defaultDate: this._state.dateTo ? this._state.dateTo : '',
+        minDate: this._state.dateFrom ? this._state.dateFrom : '',
+        onChange: this.#dateToChangeHandler,
+      },
+    );
+  }
+
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleRollupClick();
@@ -436,58 +472,6 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
-  #setDatepicker() {
-    const startTimeElement = this.element.querySelector('[name="event-start-time"]');
-    const endTimeElement = this.element.querySelector('[name="event-end-time"]');
-
-    if (this._state.isDisabled) {
-      return;
-    }
-
-    const commonConfig = {
-      dateFormat: 'd/m/y H:i',
-      enableTime: true,
-      'time_24hr': true,
-      monthSelectorType: 'static',
-    };
-
-    this.#datepickerFrom = flatpickr(
-      startTimeElement,
-      {
-        ...commonConfig,
-        defaultDate: this._state.dateFrom ? this._state.dateFrom : '',
-        maxDate: this._state.dateTo ? this._state.dateTo : '',
-        onChange: this.#dateFromChangeHandler,
-      },
-    );
-
-    this.#datepickerTo = flatpickr(
-      endTimeElement,
-      {
-        ...commonConfig,
-        defaultDate: this._state.dateTo ? this._state.dateTo : '',
-        minDate: this._state.dateFrom ? this._state.dateFrom : '',
-        onChange: this.#dateToChangeHandler,
-      },
-    );
-  }
-
-  static #parseEventToState(event) {
-    return {
-      ...event,
-      isDisabled: false,
-      isSaving: false,
-      isDeleting: false,
-    };
-  }
-
-  static #parseStateToEvent(state) {
-    const event = { ...state };
-    delete event.isDisabled;
-    delete event.isSaving;
-    delete event.isDeleting;return event;
-  }
-
   #dateFromChangeHandler = ([userDate]) => {
     this._setState({
       dateFrom: userDate,
@@ -509,4 +493,20 @@ export default class EventEditView extends AbstractStatefulView {
       this.#datepickerFrom.set('maxDate', this._state.dateTo);
     }
   };
+
+  static #parseEventToState(event) {
+    return {
+      ...event,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+    };
+  }
+
+  static #parseStateToEvent(state) {
+    const event = { ...state };
+    delete event.isDisabled;
+    delete event.isSaving;
+    delete event.isDeleting;return event;
+  }
 }

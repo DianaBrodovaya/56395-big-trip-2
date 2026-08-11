@@ -77,6 +77,44 @@ export default class EventPresenter {
     }
   }
 
+  setSaving() {
+    if (this.#isEditMode) {
+      this.#eventEditComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    } else {
+      this.#eventComponent.setDisabled(true);
+    }
+  }
+
+  setDeleting() {
+    if (this.#isEditMode) {
+      this.#eventEditComponent.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
+
+  setAborting() {
+    if (!this.#isEditMode) {
+      this.#eventComponent.setDisabled(false);
+      this.#eventComponent.shake();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#eventEditComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#eventEditComponent.shake(resetFormState);
+  }
+
   #replaceCardToForm = () => {
     this.#handleModeChange();
     replace(this.#eventEditComponent, this.#eventComponent);
@@ -130,42 +168,4 @@ export default class EventPresenter {
       deletedEvent
     );
   };
-
-  setSaving() {
-    if (this.#isEditMode) {
-      this.#eventEditComponent.updateElement({
-        isDisabled: true,
-        isSaving: true,
-      });
-    } else {
-      this.#eventComponent.setDisabled(true);
-    }
-  }
-
-  setDeleting() {
-    if (this.#isEditMode) {
-      this.#eventEditComponent.updateElement({
-        isDisabled: true,
-        isDeleting: true,
-      });
-    }
-  }
-
-  setAborting() {
-    if (!this.#isEditMode) {
-      this.#eventComponent.setDisabled(false);
-      this.#eventComponent.shake();
-      return;
-    }
-
-    const resetFormState = () => {
-      this.#eventEditComponent.updateElement({
-        isDisabled: false,
-        isSaving: false,
-        isDeleting: false,
-      });
-    };
-
-    this.#eventEditComponent.shake(resetFormState);
-  }
 }

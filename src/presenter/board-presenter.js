@@ -77,6 +77,63 @@ export default class BoardPresenter {
     this.#newEventPresenter.init(this.#eventModel.destinations, this.#eventModel.offers);
   }
 
+  #clearBoard({ resetSortType = false } = {}) {
+    this.#newEventPresenter.destroy();
+
+    this.#eventPresenters.forEach((presenter) => presenter.destroy());
+    this.#eventPresenters.clear();
+
+    remove(this.#sortComponent);
+    if (this.#noEventComponent) {
+      remove(this.#noEventComponent);
+    }
+
+    if (resetSortType) {
+      this.#currentSortType = SortType.DAY;
+    }
+  }
+
+  #renderSort() {
+    this.#sortComponent = new SortView({
+      currentSortType: this.#currentSortType,
+      onSortTypeChange: this.#handleSortTypeChange
+    });
+    render(this.#sortComponent, this.#boardContainer);
+  }
+
+  #renderBoard() {
+    if (this.#isLoading) {
+      render(this.#loadingComponent, this.#boardContainer);
+      return;
+    }
+
+    if (this.#isFailedLoad) {
+      render(this.#failedLoadComponent, this.#boardContainer);
+      return;
+    }
+
+    const events = this.events;
+
+    if (events.length === 0) {
+      this.#noEventComponent = new NoEventView(this.#filterModel.filter);
+      render(this.#noEventComponent, this.#boardContainer);
+      return;
+    }
+
+    this.#renderSort();
+    render(this.#eventListComponent, this.#boardContainer);
+
+    for (const event of events) {
+      const eventPresenter = new EventPresenter({
+        eventListContainer: this.#eventListComponent.element,
+        onModeChange: this.#handleModeChange,
+        onDataChange: this.#handleViewAction
+      });
+      eventPresenter.init(event, this.#eventModel.destinations, this.#eventModel.offers);
+      this.#eventPresenters.set(event.id || event, eventPresenter);
+    }
+  }
+
   #handleSortTypeChange = (sortType) => {
     if (this.#currentSortType === sortType) {
       return;
@@ -155,61 +212,4 @@ export default class BoardPresenter {
         break;
     }
   };
-
-  #clearBoard({ resetSortType = false } = {}) {
-    this.#newEventPresenter.destroy();
-
-    this.#eventPresenters.forEach((presenter) => presenter.destroy());
-    this.#eventPresenters.clear();
-
-    remove(this.#sortComponent);
-    if (this.#noEventComponent) {
-      remove(this.#noEventComponent);
-    }
-
-    if (resetSortType) {
-      this.#currentSortType = SortType.DAY;
-    }
-  }
-
-  #renderSort() {
-    this.#sortComponent = new SortView({
-      currentSortType: this.#currentSortType,
-      onSortTypeChange: this.#handleSortTypeChange
-    });
-    render(this.#sortComponent, this.#boardContainer);
-  }
-
-  #renderBoard() {
-    if (this.#isLoading) {
-      render(this.#loadingComponent, this.#boardContainer);
-      return;
-    }
-
-    if (this.#isFailedLoad) {
-      render(this.#failedLoadComponent, this.#boardContainer);
-      return;
-    }
-
-    const events = this.events;
-
-    if (events.length === 0) {
-      this.#noEventComponent = new NoEventView(this.#filterModel.filter);
-      render(this.#noEventComponent, this.#boardContainer);
-      return;
-    }
-
-    this.#renderSort();
-    render(this.#eventListComponent, this.#boardContainer);
-
-    for (const event of events) {
-      const eventPresenter = new EventPresenter({
-        eventListContainer: this.#eventListComponent.element,
-        onModeChange: this.#handleModeChange,
-        onDataChange: this.#handleViewAction
-      });
-      eventPresenter.init(event, this.#eventModel.destinations, this.#eventModel.offers);
-      this.#eventPresenters.set(event.id || event, eventPresenter);
-    }
-  }
 }
