@@ -1,4 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import { getCheckedInputValue } from '../utils/common.js';
 
 const upFirstLetter = (word) => `${word[0].toUpperCase()}${word.slice(1)}`;
 
@@ -47,11 +48,12 @@ export default class FilterView extends AbstractView {
   }
 
   #filterTypeChangeHandler = (evt) => {
-    if (evt.target.tagName !== 'INPUT') {
+    const filterType = getCheckedInputValue(evt);
+
+    if (!filterType) {
       return;
     }
 
-    evt.preventDefault();
-    this.#handleFilterTypeChange(evt.target.dataset.filterType);
+    this.#handleFilterTypeChange(filterType);
   };
 }

@@ -10,12 +10,6 @@ export const EventType = {
   RESTAURANT: 'restaurant',
 };
 
-export const TypeInPreposition = {
-  CHECK_IN: 'check-in',
-  SIGHTSEEING: 'sightseeing',
-  RESTAURANT: 'restaurant'
-};
-
 export const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',

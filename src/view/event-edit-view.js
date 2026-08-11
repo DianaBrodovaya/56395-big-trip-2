@@ -2,6 +2,7 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { EventType } from '../const.js';
 import { getEventTitle } from '../utils/common.js';
 import { humanizeDate } from '../utils/date.js';
+import { upFirstLetter } from '../utils/common.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
@@ -16,7 +17,6 @@ const createDefaultPoint = () => ({
   type: 'flight'
 });
 
-const upFirstLetter = (word) => `${word[0].toUpperCase()}${word.slice(1)}`;
 const formatOfferTitle = (title) => title.split(' ').join('_');
 
 const createEventEditTemplate = (state, destinations, offers) => {
@@ -266,62 +266,33 @@ export default class EventEditView extends AbstractStatefulView {
 
     const isValidDestination = this.#destinations.some((item) => item.name === destinationInput.value);
     if (!isValidDestination) {
-      destinationInput.style.outline = '2px solid red';
-      if (destinationError) {
-        destinationError.style.display = 'block';
-      }
-      destinationInput.focus();
+      this.#setInputError(destinationInput, destinationError);
+      destinationInput?.focus();
       return;
-    } else {
-      destinationInput.style.outline = '';
-      if (destinationError) {
-        destinationError.style.display = 'none';
-      }
     }
+
+    this.#clearInputError(destinationInput, destinationError);
+
 
     if (!this._state.dateFrom || !this._state.dateTo) {
-      if (!this._state.dateFrom && startTimeInput) {
-        startTimeInput.style.outline = '2px solid red';
-      }
-      if (!this._state.dateTo && endTimeInput) {
-        endTimeInput.style.outline = '2px solid red';
-      }
-
-      if (timeError) {
-        timeError.style.display = 'block';
-      }
+      this.#setInputError(startTimeInput, timeError);
+      this.#setInputError(endTimeInput, timeError);
+      startTimeInput?.blur();
+      endTimeInput?.blur();
       return;
-    } else {
-      if (startTimeInput) {
-        startTimeInput.style.outline = '';
-      }
-      if (endTimeInput) {
-        endTimeInput.style.outline = '';
-      }
-      if (timeError) {
-        timeError.style.display = 'none';
-      }
     }
+
+    this.#clearInputError(startTimeInput, timeError);
+    this.#clearInputError(endTimeInput, timeError);
 
     const isPriceInvalid = !this._state.basePrice || this._state.basePrice <= 0;
     if (isPriceInvalid) {
-      if (priceInput) {
-        priceInput.style.outline = '2px solid red';
-        priceInput.focus();
-      }
-      if (priceError) {
-        priceError.style.display = 'block';
-      }
+      this.#setInputError(priceInput, priceError);
+      priceInput?.focus();
       return;
-    } else {
-      if (priceInput) {
-        priceInput.style.outline = '';
-      }
-      if (priceError) {
-        priceError.style.display = 'none';
-      }
     }
 
+    this.#clearInputError(priceInput, priceError);
     this.#handleFormSubmit(EventEditView.#parseStateToEvent(this._state));
   };
 
@@ -340,25 +311,29 @@ export default class EventEditView extends AbstractStatefulView {
       monthSelectorType: 'static',
     };
 
-    this.#datepickerFrom = flatpickr(
-      startTimeElement,
-      {
-        ...commonConfig,
-        defaultDate: this._state.dateFrom ? this._state.dateFrom : '',
-        maxDate: this._state.dateTo ? this._state.dateTo : '',
-        onChange: this.#dateFromChangeHandler,
-      },
-    );
+    if (startTimeElement) {
+      this.#datepickerFrom = flatpickr(
+        startTimeElement,
+        {
+          ...commonConfig,
+          defaultDate: this._state.dateFrom ? this._state.dateFrom : '',
+          maxDate: this._state.dateTo ? this._state.dateTo : '',
+          onChange: this.#dateChangeHandler('dateFrom', this.#datepickerTo),
+        },
+      );
+    }
 
-    this.#datepickerTo = flatpickr(
-      endTimeElement,
-      {
-        ...commonConfig,
-        defaultDate: this._state.dateTo ? this._state.dateTo : '',
-        minDate: this._state.dateFrom ? this._state.dateFrom : '',
-        onChange: this.#dateToChangeHandler,
-      },
-    );
+    if (endTimeElement) {
+      this.#datepickerTo = flatpickr(
+        endTimeElement,
+        {
+          ...commonConfig,
+          defaultDate: this._state.dateTo ? this._state.dateTo : '',
+          minDate: this._state.dateFrom ? this._state.dateFrom : '',
+          onChange: this.#dateChangeHandler('dateTo', this.#datepickerFrom),
+        },
+      );
+    }
   }
 
   #rollupClickHandler = (evt) => {
@@ -459,40 +434,50 @@ export default class EventEditView extends AbstractStatefulView {
 
     const clickedOfferId = evt.target.dataset.offerId;
     const isChecked = evt.target.checked;
-    let updatedOffers = [...this._state.offers];
 
-    if (isChecked) {
-      updatedOffers.push(clickedOfferId);
-    } else {
-      updatedOffers = updatedOffers.filter((id) => id !== clickedOfferId);
-    }
+    const updatedOffers = isChecked
+      ? [...this._state.offers, clickedOfferId]
+      : this._state.offers.filter((id) => id !== clickedOfferId);
 
     this._setState({
       offers: updatedOffers
     });
   };
 
-  #dateFromChangeHandler = ([userDate]) => {
+  #dateChangeHandler = (boundKey, datepickerTarget) => ([userDate]) => {
     this._setState({
-      dateFrom: userDate,
+      [boundKey]: userDate,
     });
-    this.element.querySelector('[name="event-start-time"]').style.outline = '';
 
-    if (this.#datepickerTo) {
-      this.#datepickerTo.set('minDate', this._state.dateFrom);
+    const inputName = boundKey === 'dateFrom' ? 'event-start-time' : 'event-end-time';
+    const timeInput = this.element.querySelector(`[name="${inputName}"]`);
+    if (timeInput) {
+      timeInput.style.outline = '';
+    }
+
+    const configKey = boundKey === 'dateFrom' ? 'minDate' : 'maxDate';
+    if (datepickerTarget) {
+      datepickerTarget.set(configKey, userDate);
     }
   };
 
-  #dateToChangeHandler = ([userDate]) => {
-    this._setState({
-      dateTo: userDate,
-    });
-    this.element.querySelector('[name="event-end-time"]').style.outline = '';
-
-    if (this.#datepickerFrom) {
-      this.#datepickerFrom.set('maxDate', this._state.dateTo);
+  #setInputError(inputElement, errorElement) {
+    if (inputElement) {
+      inputElement.style.outline = '2px solid red';
     }
-  };
+    if (errorElement) {
+      errorElement.style.display = 'block';
+    }
+  }
+
+  #clearInputError(inputElement, errorElement) {
+    if (inputElement) {
+      inputElement.style.outline = '';
+    }
+    if (errorElement) {
+      errorElement.style.display = 'none';
+    }
+  }
 
   static #parseEventToState(event) {
     return {

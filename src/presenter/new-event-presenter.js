@@ -1,6 +1,7 @@
 import { render, remove, RenderPosition } from '../framework/render.js';
 import EventEditView from '../view/event-edit-view.js';
 import { UserAction, UpdateType } from '../const.js';
+import { isEscapeKey } from '../utils/common.js';
 
 export default class NewEventPresenter {
   #eventListContainer = null;
@@ -60,15 +61,13 @@ export default class NewEventPresenter {
       return;
     }
 
-    const resetFormState = () => {
+    this.#eventEditComponent.shake(() => {
       this.#eventEditComponent.updateElement({
         isDisabled: false,
         isSaving: false,
         isDeleting: false,
       });
-    };
-
-    this.#eventEditComponent.shake(resetFormState);
+    });
   }
 
   #handleFormSubmit = (newEvent) => {
@@ -84,7 +83,7 @@ export default class NewEventPresenter {
   };
 
   #documentKeydownHandler = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
+    if (isEscapeKey(evt)) {
       evt.preventDefault();
       this.destroy();
     }

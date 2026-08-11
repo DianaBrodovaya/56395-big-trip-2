@@ -2,6 +2,7 @@ import { render, replace, remove } from '../framework/render.js';
 import EventItemView from '../view/event-item-view.js';
 import EventEditView from '../view/event-edit-view.js';
 import { UserAction, UpdateType } from '../const.js';
+import { isEscapeKey } from '../utils/common.js';
 
 export default class EventPresenter {
   #eventListContainer = null;
@@ -99,20 +100,17 @@ export default class EventPresenter {
 
   setAborting() {
     if (!this.#isEditMode) {
-      this.#eventComponent.setDisabled(false);
       this.#eventComponent.shake();
       return;
     }
 
-    const resetFormState = () => {
+    this.#eventEditComponent.shake(() => {
       this.#eventEditComponent.updateElement({
         isDisabled: false,
         isSaving: false,
         isDeleting: false,
       });
-    };
-
-    this.#eventEditComponent.shake(resetFormState);
+    });
   }
 
   #replaceCardToForm = () => {
@@ -129,7 +127,7 @@ export default class EventPresenter {
   };
 
   #documentKeydownHandler = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
+    if (isEscapeKey(evt)) {
       evt.preventDefault();
       this.#eventEditComponent.reset(this.#event);
       this.#replaceFormToCard();
