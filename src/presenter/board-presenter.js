@@ -123,15 +123,16 @@ export default class BoardPresenter {
     this.#renderSort();
     render(this.#eventListComponent, this.#boardContainer);
 
-    for (const event of events) {
+    events.forEach((event) => {
       const eventPresenter = new EventPresenter({
         eventListContainer: this.#eventListComponent.element,
         onModeChange: this.#handleModeChange,
         onDataChange: this.#handleViewAction
       });
+
       eventPresenter.init(event, this.#eventModel.destinations, this.#eventModel.offers);
       this.#eventPresenters.set(event.id || event, eventPresenter);
-    }
+    });
   }
 
   #handleSortTypeChange = (sortType) => {
