@@ -47,31 +47,33 @@ const createOffersTemplate = (typeOffers, selectedOffersIds, eventId, isDisabled
   return `
     <section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-        <div class="event__available-offers">
-          ${typeOffers.map((typeOffer) => {
+      <div class="event__available-offers">
+        ${typeOffers.map((typeOffer) => {
     const isChecked = selectedOffersIds.includes(typeOffer.id) ? 'checked' : '';
     const formattedTitle = formatOfferTitle(typeOffer.title);
-    return (
-      `<div class="event__offer-selector">
-                <input class="event__offer-checkbox  visually-hidden"
-                      id="event-offer-${formattedTitle}-${eventId}"
-                      type="checkbox"
-                      name="event-offer-${formattedTitle}"
-                      data-offer-id="${typeOffer.id}"
-                      ${isChecked}
-                      ${isDisabled ? 'disabled' : ''}>
-                <label class="event__offer-label" for="event-offer-${formattedTitle}-${eventId}">
-                  <span class="event__offer-title">${typeOffer.title}</span>
-                  &plus;&euro;&nbsp;
-                  <span class="event__offer-price">${typeOffer.price}</span>
-                </label>
-              </div>`
-    );
+
+    return `
+      <div class="event__offer-selector">
+        <input class="event__offer-checkbox  visually-hidden"
+                id="event-offer-${formattedTitle}-${eventId}"
+                type="checkbox"
+                name="event-offer-${formattedTitle}"
+                data-offer-id="${typeOffer.id}"
+                ${isChecked}
+                ${isDisabled ? 'disabled' : ''}>
+        <label class="event__offer-label" for="event-offer-${formattedTitle}-${eventId}">
+          <span class="event__offer-title">${he.escape(String(typeOffer.title))}</span>
+          &plus;&euro;&nbsp;
+          <span class="event__offer-price">${he.escape(String(typeOffer.price))}</span>
+        </label>
+      </div>
+    `;
   }).join('')}
-        </div>
+      </div>
     </section>
   `;
 };
+
 
 const createDestinationTemplate = (pointDestination) => {
   if (!pointDestination) {
@@ -85,12 +87,16 @@ const createDestinationTemplate = (pointDestination) => {
 
   return `
     <section class="event__section  event__section--destination">
-    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+      <h3 class="event__section-title  event__section-title--destination">Destination</h3>
       ${description ? `<p class="event__destination-description">${he.escape(description)}</p>` : ''}
       ${pictures && pictures.length ? `
         <div class="event__photos-container">
           <div class="event__photos-tape">
-            ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${he.escape(picture.description || '')}">`).join('')}
+            ${pictures.map((picture) => `
+              <img class="event__photo"
+                   src="${he.escape(picture.src)}"
+                   alt="${he.escape(picture.description ?? '')}">
+            `).join('')}
           </div>
         </div>
       ` : ''}
@@ -98,9 +104,10 @@ const createDestinationTemplate = (pointDestination) => {
   `;
 };
 
+
 const createEventEditTemplate = (state, destinations, offers) => {
   const { dateFrom, dateTo, basePrice, type, destination, offers: selectedOffersIds, id, isDisabled, isSaving, isDeleting } = state;
-  const eventId = id || 0;
+  const eventId = id ?? '';
   const isEditMode = id !== undefined;
 
   const eventDestination = destinations.find((item) => item.id === destination);
@@ -133,10 +140,10 @@ const createEventEditTemplate = (state, destinations, offers) => {
               ${getEventTitle(type)}
             </label>
             <input class="event__input event__input--destination" id="event-destination-${eventId}" type="text"
-              name="event-destination" value="${he.escape(cityName || '')}" list="destination-list-edit-${eventId}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
+              name="event-destination" value="${he.escape(cityName ?? '')}" list="destination-list-edit-${eventId}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-edit-${eventId}">
               ${destinations.map((item) => `
-                <option value="${item.name}"></option>
+                <option value="${he.escape(item.name)}"></option>
               `).join('')}
             </datalist>
             <span class="event__destination-error" style="color: red; display: none; position: absolute; bottom: -22px; left: 3px; font-size: 12px;">
@@ -279,6 +286,73 @@ export default class EventEditView extends AbstractStatefulView {
     this.#setDatepicker();
   }
 
+  #setDatepicker() {
+    const startTimeElement = this.element.querySelector('[name="event-start-time"]');
+    const endTimeElement = this.element.querySelector('[name="event-end-time"]');
+
+    if (this._state.isDisabled) {
+      return;
+    }
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+
+    const commonConfig = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      'time_24hr': true,
+      monthSelectorType: 'static',
+    };
+
+    if (startTimeElement) {
+      this.#datepickerFrom = flatpickr(
+        startTimeElement,
+        {
+          ...commonConfig,
+          defaultDate: this._state.dateFrom || '',
+          maxDate: this._state.dateTo || '',
+          onChange: this.#dateChangeHandler('dateFrom'),
+        },
+      );
+    }
+
+    if (endTimeElement) {
+      this.#datepickerTo = flatpickr(
+        endTimeElement,
+        {
+          ...commonConfig,
+          defaultDate: this._state.dateTo || '',
+          minDate: this._state.dateFrom || '',
+          onChange: this.#dateChangeHandler('dateTo'),
+        },
+      );
+    }
+  }
+
+  #setInputError(inputElement, errorElement) {
+    if (inputElement) {
+      inputElement.style.outline = '2px solid red';
+    }
+    if (errorElement) {
+      errorElement.style.display = 'block';
+    }
+  }
+
+  #clearInputError(inputElement, errorElement) {
+    if (inputElement) {
+      inputElement.style.outline = '';
+    }
+    if (errorElement) {
+      errorElement.style.display = 'none';
+    }
+  }
+
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
 
@@ -321,46 +395,6 @@ export default class EventEditView extends AbstractStatefulView {
     this.#clearInputError(priceInput, priceError);
     this.#handleFormSubmit(EventEditView.#parseStateToEvent(this._state));
   };
-
-  #setDatepicker() {
-    const startTimeElement = this.element.querySelector('[name="event-start-time"]');
-    const endTimeElement = this.element.querySelector('[name="event-end-time"]');
-
-    if (this._state.isDisabled) {
-      return;
-    }
-
-    const commonConfig = {
-      dateFormat: 'd/m/y H:i',
-      enableTime: true,
-      'time_24hr': true,
-      monthSelectorType: 'static',
-    };
-
-    if (startTimeElement) {
-      this.#datepickerFrom = flatpickr(
-        startTimeElement,
-        {
-          ...commonConfig,
-          defaultDate: this._state.dateFrom ? this._state.dateFrom : '',
-          maxDate: this._state.dateTo ? this._state.dateTo : '',
-          onChange: this.#dateChangeHandler('dateFrom', this.#datepickerTo),
-        },
-      );
-    }
-
-    if (endTimeElement) {
-      this.#datepickerTo = flatpickr(
-        endTimeElement,
-        {
-          ...commonConfig,
-          defaultDate: this._state.dateTo ? this._state.dateTo : '',
-          minDate: this._state.dateFrom ? this._state.dateFrom : '',
-          onChange: this.#dateChangeHandler('dateTo', this.#datepickerFrom),
-        },
-      );
-    }
-  }
 
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
@@ -470,40 +504,42 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
-  #dateChangeHandler = (boundKey, datepickerTarget) => ([userDate]) => {
+  #dateChangeHandler = (boundKey) => ([userDate]) => {
     this._setState({
       [boundKey]: userDate,
     });
 
-    const inputName = boundKey === 'dateFrom' ? 'event-start-time' : 'event-end-time';
-    const timeInput = this.element.querySelector(`[name="${inputName}"]`);
-    if (timeInput) {
-      timeInput.style.outline = '';
+    const startTimeInput = this.element.querySelector('[name="event-start-time"]');
+    const endTimeInput = this.element.querySelector('[name="event-end-time"]');
+
+    const timeErrorElement = startTimeInput?.closest('.event__field-group--time')?.querySelector('.event__time-error');
+
+    if (this._state.dateFrom && this._state.dateTo) {
+      if (startTimeInput && timeErrorElement) {
+        this.#clearInputError(startTimeInput, timeErrorElement);
+      }
+      if (endTimeInput && timeErrorElement) {
+        this.#clearInputError(endTimeInput, timeErrorElement);
+      }
     }
 
-    const configKey = boundKey === 'dateFrom' ? 'minDate' : 'maxDate';
-    if (datepickerTarget) {
-      datepickerTarget.set(configKey, userDate);
+    if (boundKey === 'dateFrom') {
+      if (this.#datepickerTo) {
+        this.#datepickerTo.set('minDate', userDate);
+
+        if (this._state.dateTo && userDate > this._state.dateTo) {
+          this.#datepickerTo.setDate(userDate);
+          this._setState({ dateTo: userDate });
+        }
+      }
+    }
+
+    if (boundKey === 'dateTo') {
+      if (this.#datepickerFrom) {
+        this.#datepickerFrom.set('maxDate', userDate);
+      }
     }
   };
-
-  #setInputError(inputElement, errorElement) {
-    if (inputElement) {
-      inputElement.style.outline = '2px solid red';
-    }
-    if (errorElement) {
-      errorElement.style.display = 'block';
-    }
-  }
-
-  #clearInputError(inputElement, errorElement) {
-    if (inputElement) {
-      inputElement.style.outline = '';
-    }
-    if (errorElement) {
-      errorElement.style.display = 'none';
-    }
-  }
 
   static #parseEventToState(event) {
     return {

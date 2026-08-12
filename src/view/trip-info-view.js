@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import he from 'he';
 
 const MAX_CITIES_IN_ROUTE = 3;
-const INDEX_OFFSET = 1;
 
 const createTripInfoTemplate = (events, destinations, offers) => {
   if (events.length === 0) {
@@ -19,23 +18,23 @@ const createTripInfoTemplate = (events, destinations, offers) => {
 
   const routeTitle = escapedCities.length <= MAX_CITIES_IN_ROUTE
     ? escapedCities.join(' &mdash; ')
-    : `${escapedCities[0]} &mdash; ... &mdash; ${escapedCities[escapedCities.length - INDEX_OFFSET]}`;
+    : `${escapedCities.at(0)} &mdash; ... &mdash; ${escapedCities.at(-1)}`;
 
-  const firstevent = events[0];
-  const lastevent = events[events.length - INDEX_OFFSET];
+  const firstEvent = events.at(0);
+  const lastEvent = events.at(-1);
 
-  const dateStart = dayjs(firstevent.dateFrom).format('MMM D');
-  const isSameMonth = dayjs(firstevent.dateFrom).isSame(dayjs(lastevent.dateTo), 'month');
-  const dateEnd = dayjs(lastevent.dateTo).format(isSameMonth ? 'D' : 'MMM D');
+  const dateStart = dayjs(firstEvent.dateFrom).format('MMM D');
+  const isSameMonth = dayjs(firstEvent.dateFrom).isSame(dayjs(lastEvent.dateTo), 'month');
+  const dateEnd = dayjs(lastEvent.dateTo).format(isSameMonth ? 'D' : 'MMM D');
 
   const routePeriod = `${dateStart}&nbsp;&mdash;&nbsp;${dateEnd}`;
 
   const totalPrice = events.reduce((sum, event) => {
     let price = event.basePrice;
 
-    const typeOffersObj = offers.find((offer) => offer.type === event.type);
-    if (typeOffersObj) {
-      const selectedOffers = typeOffersObj.offers.filter((offer) => event.offers.includes(offer.id));
+    const offersByType = offers.find((offer) => offer.type === event.type);
+    if (offersByType) {
+      const selectedOffers = offersByType.offers.filter((offer) => event.offers.includes(offer.id));
       const offersPrice = selectedOffers.reduce((offerSum, offer) => offerSum + offer.price, 0);
       price += offersPrice;
     }
